@@ -1,0 +1,16 @@
+# All coordinates are in (col, row) format. 0,0 is the top left.
+WIDTH=5
+HEIGHT=5
+ENTRY=0,1
+EXIT=2,3
+OUTPUT_FILE=maze.txt
+PERFECT=true
+SEED=42
+SHOWDRAW=False
+#GRAPHIC_MODE=Mlx | ASCII
+GRAPHIC_MODE=ASCII
+#CAMERA_SPEED > 0
+CAMERA_SPEED=128
+#Minimum resolution 160x144 pixels
+CANVAS_WIDTH=1280
+CANVAS_HEIGHT=720

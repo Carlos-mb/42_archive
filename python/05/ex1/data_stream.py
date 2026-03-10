@@ -1,0 +1,404 @@
+from abc import ABC, abstractmethod
+from typing import Any, Dict  # typings are different in modern Python
+
+
+class DataStream(ABC):
+    """Abstract base class for processing data streams.
+
+    Defines the interface for different types of data streams that can
+    process batches, filter data, and provide statistics.
+    """
+
+    def __init__(self, stream_id: str) -> None:
+        """Initialize stream metadata and counters.
+
+        Args:
+            stream_id: Unique identifier for the stream.
+        """
+        self.processed_count: int = 0
+        self.stream_id: str = stream_id
+
+    @abstractmethod
+    def process_batch(self, data_batch: list[Any]) -> str:
+        """Process a batch of data and return a summary string.
+
+        Args:
+            data_batch: Items to process.
+
+        Returns:
+            A string summary of the processed batch.
+        """
+        pass
+
+    def filter_data(self,
+                    data_batch: list[Any],
+                    criteria: str | None = None) -> list[Any]:
+        """Return a filtered batch based on optional criteria.
+
+        Args:
+            data_batch: Items to filter.
+            criteria: Optional filter criteria.
+
+        Returns:
+            The filtered list of items.
+        """
+        return data_batch
+
+    def get_stats(self) -> Dict[str, str | int | float]:
+        """Return basic stream statistics.
+
+        Returns:
+            A dictionary containing stream_id and processed_count.
+        """
+        return {
+            "stream_id": self.stream_id,
+            "processed_count": self.processed_count
+        }
+
+
+class SensorStream(DataStream):
+    """Stream processor for sensor data readings.
+
+    Processes numerical sensor readings, calculates averages,
+    and provides filtering by high/standard values.
+    """
+
+    def __init__(self, stream_id: str) -> None:
+        """Initialize a sensor stream.
+
+        Args:
+            stream_id: Unique identifier for the stream.
+        """
+        super().__init__(stream_id)
+
+    def process_batch(self, data_batch: list[Any]) -> str:
+        """Process sensor readings and report the average.
+
+        Args:
+            data_batch: Sensor readings to process.
+
+        Returns:
+            A string summary with reading count and average.
+        """
+        try:
+            average = sum(data_batch) / len(data_batch)
+            self.processed_count += len(data_batch)
+            return (
+                f"[{self.stream_id}] "
+                f"{len(data_batch)} readings processed, avg: {average:.2f}"
+            )
+
+        except (TypeError, ZeroDivisionError):
+            return f"[{self.stream_id}] Invalid sensor data"
+
+    def filter_data(
+                    self,
+                    data_batch: list[Any],
+                    criteria: str | None = None) -> list[Any]:
+        """Filter sensor readings by criteria.
+
+        Args:
+            data_batch: Sensor readings to filter.
+            criteria: Filter criteria for readings ("high" or "standard").
+
+        Returns:
+            The filtered list of sensor readings.
+        """
+        try:
+            if criteria == "high":
+                return [data for data in data_batch if data > 30]
+            elif criteria == "standard":
+                return [data for data in data_batch if data <= 30]
+        except TypeError:
+            return data_batch
+        return data_batch
+
+    def get_stats(self) -> Dict[str, str | int | float]:
+        """Return basic stream statistics with personalized text.
+
+        Returns:
+            A dictionary containing sensor-prefixed stream_id and
+            processed_count.
+        """
+        return {
+            "stream_id": "Sensor: " + self.stream_id,
+            "processed_count": self.processed_count
+        }
+
+
+class TransactionStream(DataStream):
+    """Stream processor for financial transaction data.
+
+    Processes transaction values, calculates net flow,
+    and provides filtering by positive/negative values.
+    """
+
+    def __init__(self, stream_id: str) -> None:
+        """Initialize a transaction stream.
+
+        Args:
+            stream_id: Unique identifier for the stream.
+        """
+        super().__init__(stream_id)
+
+    def process_batch(self, data_batch: list[Any]) -> str:
+        """Process transactions and report the net flow.
+
+        Args:
+            data_batch: Transaction values to process.
+
+        Returns:
+            A string summary with operation count and net flow.
+        """
+        try:
+            total = sum(data_batch)
+            self.processed_count += len(data_batch)
+            return (
+                f"[{self.stream_id}] "
+                f"{len(data_batch)} operations processed, net flow: {total}"
+            )
+
+        except TypeError:
+            return f"[{self.stream_id}] Invalid transaction data"
+
+    def filter_data(
+                    self,
+                    data_batch: list[Any],
+                    criteria: str | None = None
+                ) -> list[Any]:
+        """Filter transactions by criteria.
+
+        Args:
+            data_batch: Transaction values to filter.
+            criteria: Filter criteria for transactions
+                ("positive" or "negative").
+
+        Returns:
+            The filtered list of transactions.
+        """
+
+        if criteria is None:
+            return data_batch
+        try:
+            if criteria == "positive":
+                return [data for data in data_batch if data >= 0]
+            elif criteria == "negative":
+                return [data for data in data_batch if data < 0]
+        except (TypeError, ValueError):
+            return data_batch
+
+        return data_batch
+
+    def get_stats(self) -> Dict[str, str | int | float]:
+        """Return basic stream statistics with personalized text.
+
+        Returns:
+            A dictionary containing transaction-prefixed stream_id and
+            processed_count.
+        """
+        return {
+            "stream_id": "Transactions: " + self.stream_id,
+            "processed_count": self.processed_count
+        }
+
+
+class EventStream(DataStream):
+    """Stream processor for event log data.
+
+    Processes event entries, counts errors,
+    and provides filtering by error/info events.
+    """
+
+    def __init__(self, stream_id: str) -> None:
+        """Initialize an event stream.
+
+        Args:
+            stream_id: Unique identifier for the stream.
+        """
+        super().__init__(stream_id)
+
+    def process_batch(self, data_batch: list[Any]) -> str:
+        """Process events and report error counts.
+
+        Args:
+            data_batch: Event entries to process.
+
+        Returns:
+            A string summary with event count and error count.
+        """
+        try:
+            total = len(data_batch)
+            error_count = 0
+            for event in data_batch:
+                try:
+                    if "error" in event or "ERROR" in event:
+                        error_count += 1
+                except TypeError:
+                    pass
+            self.processed_count += total
+            return (
+                f"[{self.stream_id}] "
+                f"{total} events processed, {error_count} error(s)"
+            )
+
+        except TypeError:
+            return f"[{self.stream_id}] Invalid event data"
+
+    def filter_data(
+                    self,
+                    data_batch: list[Any],
+                    criteria: str | None = None) -> list[Any]:
+        """Filter events by criteria.
+
+        Args:
+            data_batch: Event entries to filter.
+            criteria: Filter criteria for events ("error" or "info").
+
+        Returns:
+            The filtered list of events.
+        """
+
+        if criteria is None:
+            return data_batch
+
+        try:
+            if criteria == "error":
+                return [data for data in data_batch if "error" in data]
+            elif criteria == "info":
+                return [data for data in data_batch if "error" not in data]
+        except (TypeError, ValueError):
+            return data_batch
+
+        return data_batch
+
+    def get_stats(self) -> Dict[str, str | int | float]:
+        """Return basic stream statistics with personalized text.
+
+        Returns:
+            A dictionary containing event-prefixed stream_id and
+            processed_count.
+        """
+        return {
+            "stream_id": "Events: " + self.stream_id,
+            "processed_count": self.processed_count
+        }
+
+
+class StreamProcessor:
+    """Coordinates processing and filtering across multiple data streams.
+
+    Manages a collection of DataStream instances and orchestrates
+    batch processing and filtering operations.
+    """
+
+    # def __init__(self, streams: list[DataStream]) -> None:
+    #     """Initialize the processor with streams.
+
+    #     Args:
+    #         streams: Streams to process.
+    #     """
+    #     self.streams: list[DataStream] = streams
+
+    def __init__(self, streams: list[DataStream] | None = None) -> None:
+        """Initialize the processor with streams.
+
+        Args:
+            streams: Streams to process.
+        """
+        if streams is None:
+            self.streams = []
+        else:
+            self.streams = streams
+
+    def process_streams(
+                        self,
+                        data_map: Dict[str, list[Any]]
+                        ) -> None:
+        """Process all streams using the provided data map.
+
+        Args:
+            data_map: Mapping of stream IDs to data batches.
+
+        Returns:
+            None. Results are printed to stdout.
+        """
+
+        if not self.streams:
+            print("No streams registered.")
+            return
+
+        for stream in self.streams:
+            batch: list[Any] = data_map.get(stream.stream_id, [])
+            try:
+                result: str = stream.process_batch(batch)
+                print(result)
+            except (TypeError, ValueError) as e:
+                print(f"Processing error in {stream.stream_id}: {e}")
+
+    def filter_streams(
+            self,
+            data_map: Dict[str, list[Any]],
+            criteria_map: Dict[str, str]) -> None:
+        """Filter all streams using the provided criteria map.
+
+        Args:
+            data_map: Mapping of stream IDs to data batches.
+            criteria_map: Mapping of stream IDs to filter criteria.
+
+        Returns:
+            None. Results are printed to stdout.
+        """
+
+        for stream in self.streams:
+            batch = data_map.get(stream.stream_id, [])
+            criteria = criteria_map.get(stream.stream_id)
+            try:
+                filtered = stream.filter_data(batch, criteria)
+                print(
+                    f"{stream.stream_id}: "
+                    f"{len(filtered)} filtered item(s)"
+                )
+            except (TypeError, ValueError) as e:
+                print(f"Filtering error in {stream.stream_id}: {e}")
+
+
+def main() -> None:
+    """Main function demonstrating stream processing functionality.
+
+    Creates sensor, transaction, and event streams, then demonstrates
+    batch processing, filtering, and statistics gathering.
+    """
+    data_streams: list[DataStream] = [
+        SensorStream("SENSOR_001"),
+        TransactionStream("TRANS_001"),
+        EventStream("EVENT_001")
+    ]
+
+    data_lists: Dict[str, list[Any]] = {
+        "SENSOR_001": [22.5, 50, 21.8],
+        "TRANS_001": [100.00, 150.00, -75.00],
+        "EVENT_001": ["login", "error", "logout"]
+    }
+
+    processor = StreamProcessor(data_streams)
+
+    print("=== Batch Processing ===")
+    processor.process_streams(data_lists)
+
+    print("\n=== Filtering ===")
+
+    filter_criteria: Dict[str, str] = {
+        "SENSOR_001": "high",
+        "TRANS_001": "negative",
+        "EVENT_001": "error"
+    }
+
+    processor.filter_streams(data_lists, filter_criteria)
+
+    print("\n=== Stream Statistics ===")
+    for stream in data_streams:
+        print(stream.get_stats())
+
+
+if __name__ == "__main__":
+    main()

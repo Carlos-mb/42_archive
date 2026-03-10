@@ -1,0 +1,433 @@
+*This project has been created as part of the 42 curriculum by cmelero-, smarin-s.*
+
+# A-Maze-Ing
+
+Python implementation of a configurable maze generator and solver with ASCII and graphical (MLX) rendering backends.
+
+## Description
+
+This project builds and solves mazes with deterministic generation, optional visual rendering, and export to the required hexadecimal format.
+
+Main goals:
+
+- Generate perfect and imperfect mazes from configurable parameters
+- Solve the maze with shortest path (BFS)
+- Visualize the maze in ASCII or MLX mode
+- Export structure + path in evaluator-friendly format
+
+Project structure:
+
+```text
+a_maze_ing.py      → Application entry point
+maze.py            → MazeGenerator, Cell, and Wall classes
+renderer.py        → ASCII + MLX rendering backend
+```
+
+## Instructions
+
+### Requirements
+
+- Python 3.10+
+- MinilibX (optional, only for graphical mode)
+- XPM assets (for MLX mode)
+
+ASCII mode works independently from MLX.
+
+### Installation / Setup
+
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+make package
+pip install mazegen-1.0.0-py3-none-any.whl  
+pip install mlx_CLXV/mlx-2.2-py3-none-any.whl
+make run
+```
+
+### Execution
+
+```bash
+python3 a_maze_ing.py config.txt
+```
+
+### Complete `config.txt` Structure and Format
+
+Expected format: one `KEY=VALUE` pair per line.
+
+```ini
+WIDTH=20
+HEIGHT=20
+ENTRY=0,0
+EXIT=19,19
+SEED=94
+PERFECT=true
+OUTPUT_FILE=maze.txt
+SHOWDRAW=true
+GRAPHIC_MODE=Mlx
+CAMERA_SPEED=32
+CANVAS_WIDTH=1920
+CANVAS_HEIGHT=1080
+```
+
+Supported keys and defaults:
+
+| Key | Description | Default |
+| --- | --- | --- |
+| WIDTH | Maze width | 20 |
+| HEIGHT | Maze height | 20 |
+| ENTRY | Entry coordinate (row,col) | 0,0 |
+| EXIT | Exit coordinate (row,col) | bottom-right |
+| SEED | Random seed | 94 |
+| PERFECT | true / false | true |
+| OUTPUT_FILE | Export filename | maze.txt |
+| SHOWDRAW | Show generation animation | true |
+| GRAPHIC_MODE | ASCII / Mlx | Mlx |
+| CAMERA_SPEED | Camera speed (MLX) | 32 |
+| CANVAS_WIDTH | Window width (MLX) | 1920 |
+| CANVAS_HEIGHT | Window height (MLX) | 1080 |
+
+Validation includes file format, bounds, booleans, and backend availability.
+
+The defaults values are accepted by MazeGenerator, but, attending to PDF requirements, there are not defaults values in a_maze_ing.py for mandatory items:
+
+	WIDTH
+	HEIGHT
+	ENTRY
+	EXIT
+	OUTPUT_FILE
+	PERFECT
+
+### Controls
+
+ASCII mode:
+
+| Key | Action |
+| --- | --- |
+| r | Regenerate maze |
+| p | Toggle shortest path |
+| s | Toggle generation animation |
+| c | Change color |
+| C | Change 42 pattern color |
+| Arrow keys | Resize maze |
+| Alt + Arrows | Move entry |
+| Shift + Arrows | Move exit |
+| q | Quit |
+
+MLX mode includes camera movement, tile rendering, entry/exit sprites, and path overlay.
+
+## Technical Choices
+
+### Maze generation algorithm
+
+We use **recursive backtracking** (depth-first randomized carving) to generate a perfect maze.
+
+Why this algorithm:
+
+- Guarantees connectivity and a unique path between two cells in perfect mode
+- Easy to implement and debug with cell-wall bitmasks
+- Produces good-looking mazes with low overhead
+- Integrates naturally with our wall representation and animation flow
+
+When `PERFECT=false`, we mutate the perfect maze by opening additional walls to create loops (imperfect maze).
+
+### Maze solving algorithm
+
+Shortest path uses **Breadth-First Search (BFS)** with parent tracking and reverse reconstruction, then direction encoding (`N/E/S/W`).
+
+## Output File Format
+
+The is written in the output file using one hexadecimal digit per cell, where
+each digit encodes which walls are closed:
+
+	Bit       Direction
+	0 (LSB)   North
+	1         East
+	2         South
+	3         West
+
+Exported file contains the entry coordinates, the exit coordinates, and the shortest valid path from
+entry to exit, using the four letters N , E , S , W .:
+
+1. Maze rows encoded in hexadecimal (one line per row)
+2. Empty line
+3. Entry coordinate `(row,col)`
+4. Exit coordinate `(row,col)`
+5. Direction string of the shortest path coded as N-E-S-W steps.
+
+Wall bitmask encoding:
+
+- `1` → North
+- `2` → East
+- `4` → South
+- `8` → West
+
+Coordinate 0,0 is the top left cell.
+
+## Code Reusability
+
+Reusable core: `MazeGenerator` in `mazegen/generator.py` (also exported by `mazegen/__init__.py`).
+
+- Independent from CLI logic (`a_maze_ing.py`)
+- Independent from rendering (`renderer.py`)
+- Importable in other projects for programmatic generation and solving
+
+### Basic usage
+
+```python
+from mazegen import MazeGenerator
+
+gen = MazeGenerator()
+gen.generate()   # build/regenerate the maze
+gen.solve()      # compute shortest path from entry to exit
+```
+
+You can change row and col using gen.col and gen.row. It will regenarete the maze. It will rise an error if col or row are less than 2 or the entry or exit points would be placed out of the new maze dimentions.
+
+### Custom parameters (size, seed, etc.)
+
+```python
+from mazegen import MazeGenerator
+
+gen = MazeGenerator(
+	rows=20,
+	cols=30,
+	perfect=True,
+	entry=(0, 0),
+	exit=(19, 29),
+)
+
+gen.generate()
+gen.solve()
+```
+
+Main constructor parameters:
+
+- `rows`, `cols`: maze dimensions must be > 2
+- `seed`: deterministic random generation
+- `perfect`: if `False`, extra walls are opened to create loops
+- `entry`, `exit`: start/end coordinates
+
+### Access generated structure and solution
+
+After `generate()`, the maze grid is available in `gen.matrix` (2D list of `Cell`).
+
+- A cell at `(r, c)`: `cell = gen.matrix[r][c]`
+- Cell wall bitmask: `cell.walls`
+- Hex-encoded cell value: `cell.to_hex()`
+
+After `solve()`:
+
+- `gen.shortest_path`: list of `Cell` from exit back to entry
+- `gen.directions`: path as direction letters (`N`, `E`, `S`, `W`) from entry to exit
+
+Example:
+
+```python
+gen = MazeGenerator(rows=10, cols=10, seed=42)
+gen.generate()
+gen.solve()
+
+print(gen.matrix[0][0].to_hex())   # structure access
+print(gen.directions)              # one solution representation
+print(len(gen.shortest_path))      # number of cells in shortest path
+```
+
+### Changing Maze Dimensions Dynamically
+You can change the maze dimensions after instantiation by directly assigning new values to the rows and cols properties:
+```
+from mazegen import MazeGenerator
+
+# Create initial maze
+gen = MazeGenerator(rows=10, cols=15, seed=42)
+gen.generate()
+
+# Change dimensions - maze automatically regenerates
+gen.rows = 25
+gen.cols = 30
+
+# The maze has been regenerated with new size (25x30)
+gen.solve()  # Solve the new maze
+```
+
+How it works internally
+The rows and cols properties use setter methods that automatically trigger regeneration:
+
+When you assign a new value (e.g., gen.rows = 25), the setter validates it
+If the new dimension is valid, it updates the internal _rows or _cols attribute
+The setter then calls self.generate() automatically to rebuild the maze
+Validation rules
+The setters enforce these constraints:
+
+Minimum value: Both dimensions must be ≥ 2
+Entry/Exit bounds: The current entry and exit coordinates must fit within the new dimensions
+
+**Best practices**: Set both dimensions before generating if you need specific proportions:
+
+## Team and Project Management
+
+### Roles
+
+**cmelero-**
+
+- ASCII renderer
+- Configuration parsing
+- Export format
+- Maze generation structure
+
+**smarin-s**
+
+- MLX functionality
+- Camera system
+- Event hooks
+- Package
+
+**Joint work**
+
+- Configuration file parsing
+- BFS solver
+- Path direction encoding
+- ASCII movement interaction
+- Integration and testing
+
+### Planning: expected vs real execution
+
+Initial idea: dedicate several weeks to iterate in phases (core generation, solver, rendering, polishing).
+
+What actually happened: we got very motivated, worked full time, and finished the core implementation in just a few days, then used extra time for stabilization and validation.
+
+### Retrospective
+
+What worked well:
+
+- Clear module split (`maze.py` / `renderer.py` / entrypoint)
+- Fast feedback loop by testing ASCII mode first with interactive movement and maze resize
+
+What can be improved:
+
+- Ask more students to know their experience
+- Earlier formal test plan for edge cases
+
+### Tools used
+
+- Git / GitHub for version control and collaboration
+- Python virtual environments for reproducible setup
+- Terminal-based manual tests + output validator
+
+## Resources
+
+Classic references related to the topic:
+
+- Graph traversal fundamentals (BFS/DFS): https://cp-algorithms.com/graph/breadth-first-search.html
+- Maze generation (recursive backtracking): https://en.wikipedia.org/wiki/Maze_generation_algorithm
+- Python documentation: https://docs.python.org/3/
+- MinilibX references/man pages (included in project): `mlx_CLXV/man/man3/`
+
+AI usage in this project:
+
+- Algorithms explanation, bug finder and drafting documentation.
+
+## Error Handling
+
+The program validates:
+
+- Configuration file format
+- Coordinate bounds
+- Boolean parameters
+- Rendering backend availability
+
+Graceful interruption is supported via `Ctrl+C`.
+
+## Bonuses Implemented
+
+Beyond the mandatory requirements, this project includes several additional features that extend functionality and improve interactivity.
+
+### 1️ Animated Maze Generation
+
+The maze generation process can be animated in ASCII mode using the `SHOWDRAW=true` configuration parameter.
+
+During generation:
+
+* Each carving step is rendered in real time.
+* A small delay (`time.sleep`) is introduced to make the progression visible.
+* The animation can be toggled interactively during execution.
+
+This provides a clear visual understanding of the recursive backtracking algorithm and demonstrates how the maze structure evolves dynamically.
+
+---
+
+### 2️ Interactive Maze Resizing (ASCII Mode)
+
+The maze dimensions can be modified in real time using arrow keys during ASCII execution.
+
+* Increase or decrease width and height dynamically.
+* Automatic validation ensures entry/exit remain within bounds.
+* Maze is regenerated after resizing.
+
+This feature goes beyond the subject requirements by allowing dynamic structural changes without restarting the program.
+
+---
+
+### 3️ Interactive Entry and Exit Movement
+
+In ASCII mode:
+
+* Entry and exit positions can be moved interactively.
+* Validation prevents invalid placements.
+* The shortest path updates accordingly.
+
+This demonstrates dynamic reconfiguration of the maze graph and live recomputation of BFS solutions.
+
+---
+
+### 4️ Dual Rendering Backends (ASCII + MLX)
+
+The project supports two independent rendering backends:
+
+* Terminal ASCII renderer
+* Graphical MLX renderer
+
+Both support:
+
+* Regeneration
+* Path toggle
+* Camera movement (MLX)
+* 42 pattern visualization
+
+While only one visual mode is required by the subject, implementing both demonstrates architectural separation and rendering abstraction.
+
+---
+
+### 5 Playng mode
+
+In ASCII mode:
+
+* Using "P" activates / deactivates the Play Mode.
+* Play Mode disable Show Path and Show Draw
+* In Play Mode only Entry and Exit are vissible
+
+
+---
+
+### 6 Change pattern
+
+In ASCII mode:
+
+* Using "9" and "0" alternates pattern
+* 42 -> default pattern
+* CS -> our initials :)
+
+
+---
+## Bonus Summary
+
+Implemented bonus-level features include:
+
+* ✔ Animated generation
+* ✔ Interactive resizing
+* ✔ Interactive entrys/exit movement
+* ✔ Dual rendering backends
+* ✔ 42 color change
+* ✔ Pattern change
+
+These additions extend the project beyond the strict mandatory scope while preserving modularity and code clarity.

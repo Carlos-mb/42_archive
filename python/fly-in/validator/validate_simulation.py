@@ -204,22 +204,26 @@ def parse_solution(solution_path: str) -> list[list[tuple[str, str]]]:
             if not line:
                 continue
 
-            m = re.match(r"^T\d+:\s*(.*)$", line)
-            if m:
-                line = m.group(1).strip()
+            prefixed = re.match(r"^T\d+:\s*(.*)$", line)
+            if prefixed:
+                content = prefixed.group(1).strip()
+            else:
+                content = line
 
-            if not line:
+            if not content:
                 turns.append([])
                 continue
 
             moves: list[tuple[str, str]] = []
             seen: set[str] = set()
 
-            for token in line.split():
+            for token in content.split():
                 token = ansi_re.sub("", token).strip()
 
                 if "-" not in token:
-                    raise ValidationError(f"Solution line {lineno}: invalid token '{token}'")
+                    raise ValidationError(
+                        f"Solution line {lineno}: invalid token '{token}'"
+                    )
 
                 drone, dest = token.split("-", 1)
                 drone = ansi_re.sub("", drone).strip()

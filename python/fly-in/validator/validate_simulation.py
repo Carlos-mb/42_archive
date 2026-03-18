@@ -365,6 +365,26 @@ def validate_solution(map_data: MapData, turns: list[list[tuple[str, str]]]) -> 
                     f"Turn {turn_index}: entering restricted zone '{dest}' must use connection id"
                 )
 
+            edge = frozenset((origin, dest))
+            connection_usage[edge] += 1
+            if connection_usage[edge] > map_data.conn_capacity[edge]:
+                raise ValidationError(
+                    f"Turn {turn_index}: connection capacity exceeded at '{origin}-{dest}'"
+                )
+
+            reverse_move = (dest, origin)
+            same_turn_normal_moves = {
+                (positions[other_drone], other_dest)
+                for other_drone, other_dest in move_dict.items()
+                if other_drone != drone
+                and other_drone not in arriving_this_turn
+                and not is_connection_name(other_dest, map_data)
+            }
+            if reverse_move in same_turn_normal_moves:
+                raise ValidationError(
+                    f"Turn {turn_index}: opposite-direction crossing conflict on '{origin}-{dest}'"
+                )
+
             occupancy[dest] += 1
             if occupancy[dest] > dest_zone.max_drones:
                 raise ValidationError(

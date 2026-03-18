@@ -308,6 +308,7 @@ def validate_solution(map_data: MapData, turns: list[list[tuple[str, str]]]) -> 
             occupancy[zone] += 1
 
         connection_usage: dict[frozenset[str], int] = defaultdict(int)
+        normal_edge_directions: dict[frozenset[str], tuple[str, str]] = {}
 
         for drone, dest in move_dict.items():
             if drone in arriving_this_turn:
@@ -366,21 +367,19 @@ def validate_solution(map_data: MapData, turns: list[list[tuple[str, str]]]) -> 
                 )
 
             edge = frozenset((origin, dest))
+
             connection_usage[edge] += 1
             if connection_usage[edge] > map_data.conn_capacity[edge]:
                 raise ValidationError(
                     f"Turn {turn_index}: connection capacity exceeded at '{origin}-{dest}'"
                 )
 
-            reverse_move = (dest, origin)
-            same_turn_normal_moves = {
-                (positions[other_drone], other_dest)
-                for other_drone, other_dest in move_dict.items()
-                if other_drone != drone
-                and other_drone not in arriving_this_turn
-                and not is_connection_name(other_dest, map_data)
-            }
-            if reverse_move in same_turn_normal_moves:
+            previous_direction = normal_edge_directions.get(edge)
+            current_direction = (origin, dest)
+
+            if previous_direction is None:
+                normal_edge_directions[edge] = current_direction
+            elif previous_direction != current_direction:
                 raise ValidationError(
                     f"Turn {turn_index}: opposite-direction crossing conflict on '{origin}-{dest}'"
                 )

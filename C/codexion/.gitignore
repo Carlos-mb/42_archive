@@ -1,0 +1,9 @@
+/out.txt
+*.o
+*.out
+.vscode/
+en.norm.pdf
+codexion
+codexion_tests/
+codexion_tests_2/
+codexion_tests_3/

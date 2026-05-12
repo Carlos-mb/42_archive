@@ -28,7 +28,7 @@ Example:
 
 If your local Makefile builds `codexion.exe`, use:
 
-    ./codexion.exe 3 800 200 200 200 2 0 fifo
+    ./codexion 3 800 200 200 200 2 0 fifo
 
 Arguments:
 

@@ -25,40 +25,52 @@ If the input dictionary is empty, return an empty list [].
 >>> package_dependency_solver({"main": ["lib"], "lib": []})
 ['lib', 'main']
 
+MODIFICACIÓN DEL EXAMEN: si hay una dependencia a un paquete que no existe en la lista de paquetes, se debe ignorar y dar por bueno. 
+
  """
-
-def test(packages: dict[str, list[str]]) -> list[str]:
-    # Make a copy so we don't destroy the original data
-    deps = {pkg: list(d) for pkg, d in packages.items()}
-    result = []
-
-    deps =packages.copy()
-
-    while deps:
-        # 1. Find all packages that currently have NO dependencies
-        # Sorting here handles the "alphabetical order" rule perfectly
-        ready = sorted([pkg for pkg, d in deps.items() if not d])
-
-        # 2. If nobody is ready but we still have packages, it's a CIRCULAR dependency
-        if not ready:
-            return []
-
-        # 3. Take the first ready package (alphabetical)
-        current = ready[0]
-        result.append(current)
-
-        # 4. Remove it from our tracking dictionary
-        del deps[current]
-
-        # 5. Remove 'current' from the dependency lists of all remaining packages
-        for pkg in deps:
-            if current in deps[pkg]:
-                deps[pkg].remove(current)
-
-    return result
 
 
 def package_dependency_solver(packages: dict[str, list[str]]) -> list[str]:
+
+    ordenados = []
+    for paq in packages.keys():
+        ordenados.append(paq)
+    
+    ordenados.sort()
+    out = []
+    copy = packages.copy()
+
+    for key in copy.keys():
+        copy[key] = sorted(copy[key])
+        for paq in copy[key]:
+            if paq not in ordenados:
+                copy[key].remove(paq)              
+
+    while ordenados:
+        nodep = []
+        for paq in ordenados:
+            if len (copy[paq]) == 0:
+                nodep.append(paq)
+
+        if len(nodep) ==0:
+            return []
+
+        for dep in nodep:
+            out.append(dep)
+            copy.pop(dep)
+            ordenados.remove(dep)
+
+        for dep in nodep:
+            for paqlist in copy.values():
+                try:
+                    paqlist.remove(dep)
+                except:
+                    ...
+      
+    return out
+
+
+def package_dependency_solver2(packages: dict[str, list[str]]) -> list[str]:
     """ peeling the onion
     1. make a copy of the packages dict 
     --- while the deps exists: ----

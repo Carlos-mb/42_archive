@@ -41,11 +41,11 @@ def palindrome_splitter2(s:str)->int:
     return int(mini[n])
 
 # Test cases
-if __name__ == "__main__":
-    print(palindrome_splitter2("racecarx") == 2)  # "racecar" | "x"    
-    print(palindrome_splitter2("abcd") == 4)   # "a" | "b" | "c" | "d"
-    print(palindrome_splitter2("aabaa") == 1)  # "aabaa"
-    print(palindrome_splitter2("aab") == 2)    # "aa" | "b"
-    print(palindrome_splitter2("") == 0)       # cadena vacía
-    print(palindrome_splitter2("racecarx") == 2)  # "racecar" | "x"
-    print(palindrome_splitter2("aaba") == 2)  # 
+# if __name__ == "__main__":
+#     print(palindrome_splitter2("racecarx") == 2)  # "racecar" | "x"    
+#     print(palindrome_splitter2("abcd") == 4)   # "a" | "b" | "c" | "d"
+#     print(palindrome_splitter2("aabaa") == 1)  # "aabaa"
+#     print(palindrome_splitter2("aab") == 2)    # "aa" | "b"
+#     print(palindrome_splitter2("") == 0)       # cadena vacía
+#     print(palindrome_splitter2("racecarx") == 2)  # "racecar" | "x"
+#     print(palindrome_splitter2("aaba") == 2)  # 

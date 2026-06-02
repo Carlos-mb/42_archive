@@ -27,7 +27,7 @@ If the input dictionary is empty, return an empty list [].
 
 MODIFICACIÓN DEL EXAMEN: si hay una dependencia a un paquete que no existe en la lista de paquetes, se debe ignorar y dar por bueno. 
 
- """
+ """ 
 
 
 def package_dependency_solver(packages: dict[str, list[str]]) -> list[str]:

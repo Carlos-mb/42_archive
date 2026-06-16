@@ -1,0 +1,16 @@
+__pycache__/
+mazegenerator-00001-py3-none-any.whl
+*.odt#
+.mypy_cache/
+repo/src/__pycache__/
+.vscode/settings.json
+*safeBackup*
+repo/src/pacman.egg-info/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+release/
+out.log

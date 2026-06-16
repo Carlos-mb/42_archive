@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: pacman
+Version: 0.1.0
+Requires-Python: >=3.10
+Requires-Dist: pydantic>=2.13.4
+Requires-Dist: pygame-ce
+Requires-Dist: mazegenerator-2.0.2-py3-none-any.whl

@@ -1,0 +1,19 @@
+# Local/generated TLS material
+srcs/requirements/nginx/tools/*.crt
+srcs/requirements/nginx/tools/*.key
+
+# OS/editor files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+.cache/
+
+# Local helper scripts that must not be submitted
+NOSUBIR.sh

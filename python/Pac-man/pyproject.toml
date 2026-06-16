@@ -1,0 +1,15 @@
+[project]
+name = "pacman"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.13.4",
+    "pygame-ce>=2.5.7",
+]
+
+[dependency-groups]
+dev = [
+    "flake8",
+    "mypy",
+    "pyinstaller>=6.20.0",
+]

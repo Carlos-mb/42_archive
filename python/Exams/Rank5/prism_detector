@@ -1,4 +1,12 @@
-escribe una función en python. Debe recibir dos prámetros: list[str] y mask:str Debe pensar que la lista de str forma una matriz. Debe buscar la máscaraa(mask) en la matriz e indicar si aparece en algunas de las posibles 8 direcciones: Horizontal, vertical, diagonal izquierda, diagonal derecha, todas en ambas direcciones. Devolverá una lista de tuplas. Una lista list[tuple(int, int), str]. La lista tiene un elemento por cada vez que encuentra la máscara en un de las direcciones. Cada elemento contiene una tupla que indica la coordenada donde comienza la cadena encontrada y un código que indica la dirección: H horizontal, V Vertical, D1 diagonal hacia abajo D2 diagonal hacia arriba Si el texto está de derecha a izquierda, añadirá un signo "-" al código.
+Escribe una función en python. Debe recibir dos prámetros: list[str] y mask:str
+Debe pensar que la lista de str forma una matriz. 
+Debe buscar la máscaraa(mask) en la matriz e indicar si aparece en algunas de las posibles 8 direcciones: Horizontal, vertical, diagonal izquierda, diagonal derecha, todas en ambas direcciones.
+Devolverá una lista de tuplas. Una lista list[tuple(int, int), str]. La lista tiene un elemento por cada vez que encuentra la máscara en un de las direcciones.
+Cada elemento contiene una tupla que indica la coordenada donde comienza la cadena encontrada y un código que indica la dirección: 
+H horizontal, 
+V Vertical, 
+D1 diagonal hacia abajo D2 diagonal hacia arriba.
+Si el texto está de derecha a izquierda, añadirá un signo "-" al código.
 
 def find_mask(matrix: list[str], mask: str) -> list[tuple[tuple[int, int], str]]:
     """

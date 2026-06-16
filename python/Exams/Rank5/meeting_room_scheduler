@@ -1,0 +1,58 @@
+Haz una función en python. 
+Recibirá una lista de tuplas. Cada tupla tiene dos enteros. Cada entero se refiere a hora de inicio y hora de fin de una reunión. 
+La función debe calcular el número mínimo de salas que hacen falta para permitir todas las reuniones. Debe devolver un diccionario con dos elementos. El primer elemento tiene clave "Numero de salas" y el valor será el número de salas requerido. El segundo valor del diccionario será un diccionario, cada elemento será el número de la sala, comenzando desde 0 y su valor será una lista de tuplas con la hora de inicio y final de cada reunión. 
+El resultado estará ordenado por la hora de comienzo de la reunión. 
+No puedes hacer imports.
+
+
+def assign_meeting_rooms(
+    meetings: list[tuple[int, int]]
+) -> dict:
+    """
+    Recibe una lista de reuniones: [(inicio, fin), ...]
+
+    Devuelve:
+    {
+        "Numero de salas": int,
+        "Salas": {
+            0: [(inicio, fin), ...],
+            1: [(inicio, fin), ...],
+            ...
+        }
+    }
+
+    Se considera que una reunión que empieza justo cuando otra termina
+    puede usar la misma sala.
+    """
+
+    sorted_meetings = sorted(meetings, key=lambda meeting: (meeting[0], meeting[1]))
+
+    rooms: dict[int, list[tuple[int, int]]] = {}
+    room_end_times: list[int] = []
+
+    for start, end in sorted_meetings:
+        if end < start:
+            raise ValueError("La hora de fin no puede ser menor que la hora de inicio")
+
+        selected_room = -1
+        best_end_time = None
+
+        for room_number in range(len(room_end_times)):
+            if room_end_times[room_number] <= start:
+                if best_end_time is None or room_end_times[room_number] < best_end_time:
+                    selected_room = room_number
+                    best_end_time = room_end_times[room_number]
+
+        if selected_room == -1:
+            selected_room = len(room_end_times)
+            room_end_times.append(end)
+            rooms[selected_room] = []
+        else:
+            room_end_times[selected_room] = end
+
+        rooms[selected_room].append((start, end))
+
+    return {
+        "Numero de salas": len(rooms),
+        "Salas": rooms
+    }

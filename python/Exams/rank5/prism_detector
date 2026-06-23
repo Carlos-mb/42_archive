@@ -1,0 +1,276 @@
+# Escribe una función en python. Debe recibir dos prámetros: list[str] y mask:str
+# Debe pensar que la lista de str forma una matriz. 
+# Debe buscar la máscaraa(mask) en la matriz e indicar si aparece en algunas de las posibles 8 direcciones: Horizontal, vertical, diagonal izquierda, diagonal derecha, todas en ambas direcciones.
+# Devolverá una lista de tuplas. Una lista list[tuple(int, int), str]. La lista tiene un elemento por cada vez que encuentra la máscara en un de las direcciones.
+# Cada elemento contiene una tupla que indica la coordenada donde comienza la cadena encontrada y un código que indica la dirección: 
+# H horizontal, 
+# V Vertical, 
+# D1 diagonal hacia abajo D2 diagonal hacia arriba.
+# Si el texto está de derecha a izquierda, añadirá un signo "-" al código.
+
+def ia_version_find_mask(matrix: list[str], mask: str) -> list[tuple[tuple[int, int], str]]:
+    """
+    Busca `mask` dentro de una matriz representada como list[str].
+
+    Coordenadas devueltas: (fila, columna), empezando en 0.
+
+    Códigos de dirección:
+        H   -> horizontal izquierda a derecha
+        H-  -> horizontal derecha a izquierda
+        V   -> vertical arriba a abajo
+        V-  -> vertical abajo a arriba
+        D1  -> diagonal hacia abajo-derecha
+        D1- -> diagonal hacia arriba-izquierda
+        D2  -> diagonal hacia arriba-derecha
+        D2- -> diagonal hacia abajo-izquierda
+    """
+
+    if not matrix or not mask:
+        return []
+
+    rows = len(matrix)
+    cols = len(matrix[0])
+
+    for row in matrix:
+        if len(row) != cols:
+            raise ValueError("Todas las filas de la matriz deben tener la misma longitud")
+
+    directions = [
+        (0, 1, "H"),      # izquierda -> derecha
+        (0, -1, "H-"),    # derecha -> izquierda
+
+        (1, 0, "V"),      # arriba -> abajo
+        (-1, 0, "V-"),    # abajo -> arriba
+
+        (1, 1, "D1"),     # diagonal abajo-derecha
+        (-1, -1, "D1-"),  # diagonal arriba-izquierda
+
+        (-1, 1, "D2"),    # diagonal arriba-derecha
+        (1, -1, "D2-"),   # diagonal abajo-izquierda
+    ]
+
+    result: list[tuple[tuple[int, int], str]] = []
+    mask_len = len(mask)
+
+    def fits(row: int, col: int, drow: int, dcol: int) -> bool:
+        end_row = row + drow * (mask_len - 1)
+        end_col = col + dcol * (mask_len - 1)
+
+        return 0 <= end_row < rows and 0 <= end_col < cols
+
+    for row in range(rows):
+        for col in range(cols):
+            for drow, dcol, code in directions:
+                if not fits(row, col, drow, dcol):
+                    continue
+
+                found = True
+
+                for i in range(mask_len):
+                    current_row = row + drow * i
+                    current_col = col + dcol * i
+
+                    if matrix[current_row][current_col] != mask[i]:
+                        found = False
+                        break
+
+                if found:
+                    result.append(((row, col), code))
+
+    return result
+
+
+# Versión mía
+
+def find_mask(matrix: list[str], mask: str) -> list[tuple[tuple[int, int], str]]:
+
+    if not matrix or not mask:
+        return []
+
+    filas = len(matrix)    
+    cols = len(matrix[0])
+
+    for f in matrix:
+        if len(f) != cols:
+            return []
+
+    dirs = [
+        (0, 1, "H"),
+        (0, -1, "H-"),
+        (1, 0, "V"),
+        (-1, 0, "V-"),
+        (1, 1, "D1"),
+        (-1, -1, "D1-"),
+        (-1, 1, "D2"),
+        (1, -1, "D2-")
+    ]
+
+    out: list[tuple[tuple[int, int], str]]  = []
+
+    for f in range(filas):
+        for c in range(cols):
+            for df, dc, desc in dirs:
+                
+                found = True
+                
+                for i in range(len(mask)):
+                    curf = f + (df * i)
+                    curc = c + (dc * i)
+                    try:
+                        if matrix[curf][curc] != mask[i]:
+                            found = False
+                            break
+                    except Exception:
+                        found = False
+                        break
+    
+                if found:
+                    out.append (((f, c), desc))
+
+    return out
+
+def assert_equal(nombre_caso, recibido, esperado):
+    if recibido != esperado:
+        raise AssertionError(
+            "\nFALLÓ: " + nombre_caso +
+            "\nEsperado: " + repr(esperado) +
+            "\nRecibido: " + repr(recibido)
+        )
+
+
+def test_find_mask_sin_imports():
+    # 1. Correcto: horizontal izquierda -> derecha y derecha -> izquierda
+    matrix = ["ABCBA"]
+    mask = "ABC"
+    expected = [
+        ((0, 0), "H"),
+        ((0, 4), "H-"),
+    ]
+    assert_equal(
+        "1. Horizontal H y H-",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 2. Correcto: vertical arriba -> abajo y abajo -> arriba
+    matrix = [
+        "A",
+        "B",
+        "C",
+        "B",
+        "A",
+    ]
+    mask = "ABC"
+    expected = [
+        ((0, 0), "V"),
+        ((4, 0), "V-"),
+    ]
+    assert_equal(
+        "2. Vertical V y V-",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 3. Correcto: diagonal D1 y D2-
+    matrix = [
+        "AXA",
+        "XBX",
+        "CXC",
+    ]
+    mask = "ABC"
+    expected = [
+        ((0, 0), "D1"),
+        ((0, 2), "D2-"),
+    ]
+    assert_equal(
+        "3. Diagonal D1 y D2-",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 4. Correcto: diagonal D2 y D1-
+    matrix = [
+        "CXC",
+        "XBX",
+        "AXA",
+    ]
+    mask = "ABC"
+    expected = [
+        ((2, 0), "D2"),
+        ((2, 2), "D1-"),
+    ]
+    assert_equal(
+        "4. Diagonal D2 y D1-",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 5. Correcto límite: máscara de longitud 1
+    matrix = ["A"]
+    mask = "A"
+    expected = [
+        ((0, 0), "H"),
+        ((0, 0), "H-"),
+        ((0, 0), "V"),
+        ((0, 0), "V-"),
+        ((0, 0), "D1"),
+        ((0, 0), "D1-"),
+        ((0, 0), "D2"),
+        ((0, 0), "D2-"),
+    ]
+    assert_equal(
+        "5. Máscara de longitud 1",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 6. Incorrecto: la máscara no aparece
+    matrix = [
+        "ABC",
+        "DEF",
+        "GHI",
+    ]
+    mask = "XYZ"
+    expected = []
+    assert_equal(
+        "6. Máscara inexistente",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 7. Incorrecto límite: la máscara es más larga que cualquier dirección posible
+    matrix = [
+        "AB",
+        "CD",
+    ]
+    mask = "ABC"
+    expected = []
+    assert_equal(
+        "7. Máscara demasiado larga",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 8. Incorrecto límite: matriz vacía
+    matrix = []
+    mask = "A"
+    expected = []
+    assert_equal(
+        "8. Matriz vacía",
+        find_mask(matrix, mask),
+        expected
+    )
+
+    # 9. Incorrecto límite: máscara vacía
+    matrix = ["ABC"]
+    mask = ""
+    expected = []
+    assert_equal(
+        "9. Máscara vacía",
+        find_mask(matrix, mask),
+        expected
+    )
+
+
+test_find_mask_sin_imports()
+print("Todos los tests han pasado correctamente")

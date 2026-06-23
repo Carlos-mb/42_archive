@@ -1,8 +1,8 @@
-Haz una función en python. 
-Recibirá una lista de tuplas. Cada tupla tiene dos enteros. Cada entero se refiere a hora de inicio y hora de fin de una reunión. 
-La función debe calcular el número mínimo de salas que hacen falta para permitir todas las reuniones. Debe devolver un diccionario con dos elementos. El primer elemento tiene clave "Numero de salas" y el valor será el número de salas requerido. El segundo valor del diccionario será un diccionario, cada elemento será el número de la sala, comenzando desde 0 y su valor será una lista de tuplas con la hora de inicio y final de cada reunión. 
-El resultado estará ordenado por la hora de comienzo de la reunión. 
-No puedes hacer imports.
+# Haz una función en python. 
+# Recibirá una lista de tuplas. Cada tupla tiene dos enteros. Cada entero se refiere a hora de inicio y hora de fin de una reunión. 
+# La función debe calcular el número mínimo de salas que hacen falta para permitir todas las reuniones. Debe devolver un diccionario con dos elementos. El primer elemento tiene clave "Numero de salas" y el valor será el número de salas requerido. El segundo valor del diccionario será un diccionario, cada elemento será el número de la sala, comenzando desde 0 y su valor será una lista de tuplas con la hora de inicio y final de cada reunión. 
+# El resultado estará ordenado por la hora de comienzo de la reunión. 
+# No puedes hacer imports.
 
 
 def assign_meeting_rooms(

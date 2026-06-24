@@ -8,6 +8,9 @@
 # D1 diagonal hacia abajo D2 diagonal hacia arriba.
 # Si el texto está de derecha a izquierda, añadirá un signo "-" al código.
 
+
+###  OJO !! --> El subject del examen creo que dice que hay que devolver sólo la primera ocurrencia, no todas. No hay que hacer un append, hay que devolver la primera vez que se encuentra.
+
 def ia_version_find_mask(matrix: list[str], mask: str) -> list[tuple[tuple[int, int], str]]:
     """
     Busca `mask` dentro de una matriz representada como list[str].

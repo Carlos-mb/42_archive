@@ -1,51 +1,3 @@
-# Guía para recordar los ejercicios del rank05
-
-El código completo está en `soluciones/`. Para comprobar que todo funciona: `cd soluciones && python3 test_ejemplos.py`.
-
-## Los 4 trucos que se repiten
-
-Con estos cuatro trucos se resuelven los 7 ejercicios. Apréndelos primero.
-
-**Truco 1 — «Índice que avanza solo»** (compress / decompress)
-```python
-i = 0
-while i < len(s):
-    char = s[i]
-    while i < len(s) and <condición sobre s[i]>:
-        ...
-        i += 1
-```
-
-**Truco 2 — «¿Me salgo del tablero?»** (spiral, islands, prism)
-```python
-if fila < 0 or fila >= len(tablero) or col < 0 or col >= len(tablero[fila]):
-    # fuera
-```
-Siempre en este orden: primero `< 0`, luego `>= len`. Primero la fila, luego la columna.
-
-**Truco 3 — «Lista de pendientes»** (islands, word ladder)
-```python
-pendientes = [inicio]
-while pendientes:
-    actual = pendientes.pop()     # islands: pop()   (da igual el orden)
-    actual = pendientes.pop(0)    # ladder: pop(0)   (el primero que entró; da el camino más corto)
-    ...
-    pendientes.append(vecino)
-```
-
-**Truco 4 — «Recursión llevando el camino»** (graph cycle)
-```python
-def visit(nodo, camino):
-    if nodo in camino:
-        return True          # he vuelto a pisar mi propio camino → ciclo
-    for vecino in ...:
-        if visit(vecino, camino + [nodo]):
-            return True
-    return False
-```
-
----
-
 # Nivel 1
 
 ## py_compress_decompress
@@ -151,7 +103,13 @@ py_graph_cycle_detector({})                          # False
 
 ## py_room_scheduler
 
+
 **Enunciado:** reparte reuniones en salas. Cada reunión es una lista de dos enteros `[inicio, fin]`.
+
+Haz una función en python. 
+Recibirá una lista de tuplas. Cada tupla tiene dos enteros. Cada entero se refiere a hora de inicio y hora de fin de una reunión. 
+La función debe calcular el número mínimo de salas que hacen falta para permitir todas las reuniones. Debe devolver un diccionario con dos elementos. El primer elemento tiene clave "Numero de salas" y el valor será el número de salas requerido. El segundo valor del diccionario será un diccionario, cada elemento será el número de la sala, comenzando desde 0 y su valor será una lista de tuplas con la hora de inicio y final de cada reunión. 
+El resultado estará ordenado por la hora de comienzo de la reunión. 
 
 - Ordena las reuniones por hora de inicio y asígnalas a las salas disponibles, una tras otra.
 - Devuelve un diccionario con:

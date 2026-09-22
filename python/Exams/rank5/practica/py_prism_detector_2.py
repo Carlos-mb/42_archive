@@ -1,59 +1,49 @@
 def prism_detector(grid: list[str], pattern: str):
+    DIRECTIONS = [
+        (1, 0, "H"), (-1, 0, "H-"),
+        (0, 1, "V"), (0, -1, "V-"),
+        (1, 1, "D1"), (-1, -1, "D1-"),
+        (-1, 1, "D2"), (1, -1, "D2-"),
+]
 
-    # OJO: Direcciones en row, col que es como se usará el grid.
-    # es una lista de filas y cada fila tine sus columnas    
-    # Pero te piden devolver en x, y -> es eso col, row.
-
-    DIRECCIONES = [ (0,1,"H"), # No avanza en la fila, avanza en la col
-                    (0,-1,"H-"),
-                    (1,0,"V"),
-                    (-1, 0,"V-"),
-                    (1,1,"D1"),
-                    (-1,-1,"D1-"),
-                    (1,-1,"D2"),
-                    (-1,1,"D2-")
-                ]
-
-    salida = []
-
+    result = []
     if not grid or not pattern:
-        return []
+        return result
+    for y in range(len(grid)):
+        for x in range(len(grid[y])):
+            for dx, dy, code in DIRECTIONS:
+                if matches(grid, pattern, x, y, dx, dy):
+                    result.append((x, y, code))
+    return result
 
 
-    # OJO, el uso mejor en row, col. Aunque debería dar igual pq es una matriz cuadrada
-    for row in range(len(grid)):
-        for col in range(len(grid[0])):
-            for dir in DIRECCIONES:
-                encontrado = busca(row, col, dir, grid, pattern)
-                if encontrado is not None:
-                    salida = salida + [encontrado]
-    return salida
-
-def busca(row: int, col: int, dir: tuple[int, int, str], grid: list, pattern: str) -> tuple | None:
-
+def matches(grid: list[str], pattern: str, x: int, y: int,
+            dx: int, dy: int) -> bool:
     for i in range(len(pattern)):
+        cx = x + (dx * i)
+        cy = y + (dy * i)
         try:
-            if grid[row + dir[0] * i] [col + dir[1] * i] != pattern[i]:
-                return None
+            if grid[cy][cx] != pattern[i]:
+                return False
         except:
-            return None
+            return False
+    return True
 
-    # OJO, hay que devolver x, y -> col, row
-    return (col, row, dir[2])
+
+prism_detector(["CAT", "A..", "T.."], "CAT")    # [(0, 0, "H"), (0, 0, "V")]
+prism_detector([], "CAT")                       # []
 
 try:
     resultado = prism_detector(["CAT", "A..", "T.."], "CAT")
     print("OK #1" if resultado == [(0, 0, "H"), (0, 0, "V")] else "ERROR #1")
 except Exception:
     print("ERROR #1")
-    print(resultado)
 
 try:
     resultado = prism_detector([], "CAT")
     print("OK #2" if resultado == [] else "ERROR #2")
 except Exception:
     print("ERROR #2")
-    print(resultado)
 
 try:
     resultado = prism_detector(["CAT"], "")

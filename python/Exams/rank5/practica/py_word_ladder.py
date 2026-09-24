@@ -1,60 +1,42 @@
 def essiguiente(uno: str, dos: str):
 
-    if len (uno) != len (dos):
-        return False
+    strike = 0
 
-    if uno == dos:
+    if len(uno) != len(dos):
         return False
-
-    strikes = 0
 
     for i in range(len(uno)):
         if uno[i] != dos[i]:
-            strikes += 1
-
-        if strikes == 2:
+            strike += 1
+        if strike == 2:
             return False
-        
     return True
 
 def word_ladder(start: str, end: str, sentence: list[str]) -> int:
 
-    # Todos los caminos que voy descubriendo. Una lista por camino.
-    paths = [[start]]
+    if start == "" or end == "":
+        return 0
 
-    # Todas las palabras que ya están en un camino y no debo reusar
+    caminos = [[start]]
+
     visitados = [start]
 
-    # Los caminos que agoten las palabras y no lleguen al final, morirán... ya verás
-    while paths:
+    while caminos:
+        camino = caminos.pop(0)
+        ultima = camino[-1]
 
-        # Quito el primer camino.
-        # Si resultara que puede seguir, se añadirá al final.
-        # Si no puede seguir, desaparecerá.
-        # Así los más cortos quedan al principio.
-        path = paths.pop(0)
+        if ultima == end:
+            return (len(camino))
 
-        # Qué palabra estoy mirando ahora (la última del camino)
-        current = path[-1]
-
-        # Si es la que estoy buscando, ya he terminado.
-        if current == end:
-            return len(path)
-
-        # Recorro todas la palabras 
-        for candidato in sentence:
-
-            # Si la palabra no ha sido visitada y puede ser continuación
-            # de la anterior, creo el camino y lo pongo al final de la lista
-            # de caminos posibles. 
-            # Si no tiene siguiente palabra, habrá muerto.
-            if candidato not in visitados and essiguiente(candidato, current):
-                visitados.append(candidato)
-                paths.append(path + [candidato]) # Suma dos listas: path y una lista con un único elemento
+        for palabra in sentence:
+            if palabra not in visitados:
+                if essiguiente(ultima, palabra):
+                    # camino.append(palabra) --> ¡¡ No funciona porque guarda la referencia a lista y se mezclan los caminos!!
+                    # caminos.append(camino)
+                    caminos.append(camino + [palabra])
+                    visitados.append(palabra)
 
     return 0
-
-
 
 print(word_ladder("hit", "cog", ["hot", "dot", "dog", "lot", "log", "cog"]) == 5)
 print(word_ladder("a", "a", []) == 1)

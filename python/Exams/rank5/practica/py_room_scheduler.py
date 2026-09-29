@@ -1,17 +1,27 @@
 def py_room_scheduler(meetings: list[list[int]]):
 
     rooms= []
-
-    # No numero las salas, sólo creo una lista.
-    # ordenar por orden de comienzo de reunión es importante
-    for meeting in sorted(meetings,key=lambda m: m[0]):
+    
+    for meeting in sorted(meetings, key=lambda m: m[0]):
+        assigned = False
         for room in rooms:
-            # porque así sé que a las salas se les van añadiendo las reuniones
-            # por orden
+            # print(room)
+            # print(room[-1])
             if room[-1][1] <= meeting[0]:
-                room.append(meeting)
+                room.append([meeting[0], meeting[1]])
+                assigned = True
                 break
-        else:
-            rooms.append([meeting]) # IMPORTANTE; añadir con corchetes para que la nueva sala sea una lista con la primera tupla
+        if not assigned:
+            rooms.append([[meeting[0], meeting[1]]])
 
-    return {"total_rooms": len(rooms), "schedule": rooms}
+    salida:dict = {}
+    salida["total_rooms"] = len(rooms)
+    salida["schedule"] = rooms
+
+    return salida
+
+print(py_room_scheduler([[0, 30], [5, 10], [15, 20]]))
+# {"total_rooms": 2, "schedule": [[[0, 30]], [[5, 10], [15, 20]]]}
+
+print(py_room_scheduler([]))
+# {"total_rooms": 0, "schedule": []}
